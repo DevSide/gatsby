@@ -318,6 +318,27 @@ describe(`Production loader`, () => {
       })
     })
 
+    it(`should be return nothing when component cannot be found`, async () => {
+      const asyncRequires = createAsyncRequires({})
+      const prodLoader = new ProdLoader(asyncRequires, [])
+      const pageData = {
+        path: `/mypage/`,
+        componentChunkName: `chunk`,
+        result: {
+          pageContext: `something something`,
+        },
+      }
+      prodLoader.loadPageDataJson = jest.fn(() =>
+        Promise.resolve({
+          payload: pageData,
+          status: `success`,
+        })
+      )
+
+      const expectation = await prodLoader.loadPage(`/mypage/`)
+      expect(expectation).toBeUndefined()
+    })
+
     it(`should set not found on finalResult`, async () => {
       const asyncRequires = createAsyncRequires({
         chunk: () => Promise.resolve(`instance`),

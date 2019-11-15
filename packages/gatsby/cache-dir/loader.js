@@ -177,20 +177,33 @@ export class BaseLoader {
       this.loadPageDataJson(pagePath),
     ])
       .then(allData => {
-        const result = allData[1]
-        if (result.status === `error`) {
+        const [appDataResult, pageDataResult] = allData
+        if (pageDataResult.status === `error`) {
           return {
             status: `error`,
           }
-        }
-        if (result.status === `failure`) {
+        } else if (pageDataResult.status === `failure`) {
           // throw an error so error trackers can pick this up
           throw new Error(
             `404 page could not be found. Checkout https://www.gatsbyjs.org/docs/add-404-page/`
           )
         }
 
-        let pageData = result.payload
+        console.log(`######## TEST`)
+
+        if (
+          appDataResult &&
+          appDataResult.webpackCompilationHash !==
+            window.___webpackCompilationHash
+        ) {
+          return {
+            createdAt: new Date(),
+            status: `obsolete`,
+            payload: null,
+          }
+        }
+
+        let pageData = pageDataResult.payload
         const { componentChunkName } = pageData
         return this.loadComponent(componentChunkName).then(component => {
           const finalResult = { createdAt: new Date() }
@@ -199,7 +212,7 @@ export class BaseLoader {
             finalResult.status = `error`
           } else {
             finalResult.status = `success`
-            if (result.notFound === true) {
+            if (pageDataResult.notFound === true) {
               finalResult.notFound = true
             }
             pageData = Object.assign(pageData, {
@@ -352,8 +365,13 @@ const createComponentUrls = componentChunkName =>
 
 export class ProdLoader extends BaseLoader {
   constructor(asyncRequires, matchPaths) {
-    const loadComponent = chunkName =>
-      asyncRequires.components[chunkName]().then(preferDefault)
+    const loadComponent = chunkName => {
+      if (!asyncRequires.components[chunkName]) {
+        return Promise.resolve()
+      }
+
+      return asyncRequires.components[chunkName]().then(preferDefault)
+    }
 
     super(loadComponent, matchPaths)
   }

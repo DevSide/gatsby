@@ -117,7 +117,7 @@ apiRunnerAsync(`onClientEntry`).then(() => {
   }
 
   publicLoader.loadPage(browserLoc.pathname).then(page => {
-    if (!page || page.status === `error`) {
+    if (!page || page.status === `error` || page.status === `obsolete`) {
       throw new Error(
         `page resources for ${browserLoc.pathname} not found. Not rendering React`
       )

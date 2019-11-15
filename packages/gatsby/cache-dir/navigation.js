@@ -95,10 +95,7 @@ const navigate = (to, options = {}) => {
     // If the loaded page has a different compilation hash to the
     // window, then a rebuild has occurred on the server. Reload.
     if (process.env.NODE_ENV === `production` && pageResources) {
-      if (
-        pageResources.page.webpackCompilationHash !==
-        window.___webpackCompilationHash
-      ) {
+      if (pageResources.status === `obsolete`) {
         // Purge plugin-offline cache
         if (
           `serviceWorker` in navigator &&
